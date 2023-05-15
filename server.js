@@ -18,6 +18,7 @@ const { error } = require('console');
 const client = new pg.Client(process.env.DATABASE_URL);
 
 server.get('/trending', trendingHandler);
+server.post('/addToFav', addToFav);
 
 ///////////////////////////////////
 function trendingHandler(req, res){
@@ -41,6 +42,31 @@ function trendingHandler(req, res){
     })
 }
 
+function addToFav(req,res){
+    const favMovie = req.body;
+    const sql = `INSERT INTO favMovies (favMovieName, favMoviePosterPath, comment)
+    VALUES ($1, $2, $3);`
+    const values = [favMovie.name, favMovie.poster_path, favMovie.overview];
+    client.query(sql, values)
+    .then(data => {
+        res.send("movie has been added to favorite");
+    })
+    .catch((error)=>{
+        errorHandler(error, req, res)
+    })
+}
+
+function getfavMovie(){
+    const sql = `SELECT * FROM favMovies`;
+    client.query(sql)
+    .then(data =>{
+        res.send(data.rows);
+    })
+    .catch((error)=>{
+        errorHandler(error,req,res)
+    })
+    
+}
 
 
 //////////////////////////////////////
