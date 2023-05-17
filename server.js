@@ -46,7 +46,7 @@ function addToFav(req,res){
     const favMovie = req.body;
     const sql = `INSERT INTO favMovies (favMovieName, favMoviePosterPath, comment)
     VALUES ($1, $2, $3);`
-    const values = [favMovie.name, favMovie.poster_path, favMovie.overview];
+    const values = [favMovie.name, favMovie.poster_path, favMovie.comment];
     client.query(sql, values)
     .then(data => {
         res.send("movie has been added to favorite");
