@@ -47,9 +47,9 @@ function trendingHandler(req, res){
 
 function addToFav(req,res){
     const favMovie = req.body;
-    const sql = `INSERT INTO favMovies (favMovieName, favMoviePosterPath, comment, releaseDate)
-    VALUES ($1, $2, $3, $4);`
-    const values = [favMovie.name, favMovie.poster_path, favMovie.comment, favMovie.release_date];
+    const sql = `INSERT INTO favmovies (favMovieName, favMoviePosterPath, comment)
+    VALUES ($1, $2, $3);`
+    const values = [favMovie.name, favMovie.poster_path, favMovie.comment];
     client.query(sql, values)
     .then(data => {
         res.send("movie has been added to favorite");
@@ -60,7 +60,7 @@ function addToFav(req,res){
 }
 
 function getfavMovie(req, res){
-    const sql = `SELECT * FROM favMovies`;
+    const sql = `SELECT * FROM favmovies`;
     client.query(sql)
     .then(data =>{
         res.send(data.rows);
@@ -75,13 +75,13 @@ function getfavMovie(req, res){
 function updateComment(req, res){
     const id = req.params.id;
     const updatedComment = req.body;
-    const sql = `UPDATE favMovies
+    const sql = `UPDATE favmovies
     SET comment = $1
     WHERE id = ${id} RETURNING *;`;
     const values=[updatedComment.comment];
     client.query(sql, values)
         .then(data => {
-            const sql = `SELECT * FROM favMovies;`;
+            const sql = `SELECT * FROM favmovies;`;
             client.query(sql)
                 .then(allData => {
                     res.send(allData.rows)
@@ -97,11 +97,11 @@ function updateComment(req, res){
 
 function deleteMovie(req, res) {
     const id = req.params.id;
-    const sql = `DELETE FROM favMovies WHERE id = ${id} RETURNING *;`;
+    const sql = `DELETE FROM favmovies WHERE id = ${id} RETURNING *;`;
   
     client.query(sql)
       .then((data) => {
-        const sql = `SELECT * FROM favMovies;`;
+        const sql = `SELECT * FROM favmovies;`;
         client.query(sql)
           .then((allData) => {
             res.send(allData.rows);
