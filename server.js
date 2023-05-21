@@ -19,7 +19,10 @@ const client = new pg.Client(process.env.DATABASE_URL);
 
 server.get('/trending', trendingHandler);
 server.post('/addToFav', addToFav);
-
+server.get('/favList', getfavMovie);
+// update and delete:
+server.put('/updateComment/:id', updateComment);
+server.delete('/deleteMovie/:id', deleteMovie);
 ///////////////////////////////////
 function trendingHandler(req, res){
     axios.get("https://api.themoviedb.org/3/trending/all/week?api_key=37ddc7081e348bf246a42f3be2b3dfd0&language=en-US")
@@ -44,9 +47,9 @@ function trendingHandler(req, res){
 
 function addToFav(req,res){
     const favMovie = req.body;
-    const sql = `INSERT INTO favMovies (favMovieName, favMoviePosterPath, comment)
-    VALUES ($1, $2, $3);`
-    const values = [favMovie.name, favMovie.poster_path, favMovie.comment];
+    const sql = `INSERT INTO favMovies (favMovieName, favMoviePosterPath, comment, releaseDate)
+    VALUES ($1, $2, $3, $4);`
+    const values = [favMovie.name, favMovie.poster_path, favMovie.comment, favMovie.release_date];
     client.query(sql, values)
     .then(data => {
         res.send("movie has been added to favorite");
@@ -56,18 +59,62 @@ function addToFav(req,res){
     })
 }
 
-function getfavMovie(){
+function getfavMovie(req, res){
     const sql = `SELECT * FROM favMovies`;
     client.query(sql)
     .then(data =>{
         res.send(data.rows);
     })
     .catch((error)=>{
-        errorHandler(error,req,res)
+        errorHandler(error, req, res)
     })
     
 }
+//////////////////////////////////////
+// update and delete:
+function updateComment(req, res){
+    const id = req.params.id;
+    const updatedComment = req.body;
+    const sql = `UPDATE favMovies
+    SET comment = $1
+    WHERE id = ${id} RETURNING *;`;
+    const values=[updatedComment.comment];
+    client.query(sql, values)
+        .then(data => {
+            const sql = `SELECT * FROM favMovies;`;
+            client.query(sql)
+                .then(allData => {
+                    res.send(allData.rows)
+                })
+                .catch((error) => {
+                    errorHandler(error, req, res)
+                })
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
 
+function deleteMovie(req, res) {
+    const id = req.params.id;
+    const sql = `DELETE FROM favMovies WHERE id = ${id} RETURNING *;`;
+  
+    client.query(sql)
+      .then((data) => {
+        const sql = `SELECT * FROM favMovies;`;
+        client.query(sql)
+          .then((allData) => {
+            res.send(allData.rows);
+          })
+          .catch((error) => {
+            errorHandler(error, req, res)
+          });
+      })
+      .catch((error) => {
+        console.log(error)
+      });
+  }
+  
 //////////////////////////////////////
 // 404:
 // server.use(function(req, res){
